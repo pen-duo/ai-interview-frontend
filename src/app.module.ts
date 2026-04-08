@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { ConfigService } from '@nestjs/config';
+import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import appConfig from './config/app.config';
@@ -13,6 +15,12 @@ import { validateEnv } from './config/env-validation';
       envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // 按环境读取对应的 .env 文件
       load: [appConfig], // 把零散环境变量整理成统一配置对象
       validate: validateEnv, // 项目启动前先校验环境变量是否合法
+    }),
+    MongooseModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        uri: configService.get<string>('database.uri'), // 从统一配置里读取 MongoDB 地址
+      }),
     }),
   ],
   controllers: [AppController],

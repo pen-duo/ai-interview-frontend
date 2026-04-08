@@ -46,6 +46,7 @@ The project uses `@nestjs/config` for environment management.
 - `pnpm run start` / `pnpm run start:dev` load `.env.development`
 - `pnpm run start:prod` loads `.env.production`
 - Environment variables are validated at startup
+- MongoDB connection is initialized from `MONGODB_URI`
 
 ## Compile and run the project
 

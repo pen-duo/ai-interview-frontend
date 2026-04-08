@@ -6,6 +6,9 @@ export const envValidationSchema: ObjectSchema = Joi.object({
     .default('development'), // 限制运行环境只能是这 3 种
   PORT: Joi.number().port().default(3000), // 必须是合法端口号
   CORS_ORIGIN: Joi.string().allow('').default('*'), // 允许为空，默认全部放开
+  MONGODB_URI: Joi.string()
+    .uri({ scheme: ['mongodb', 'mongodb+srv'] })
+    .default('mongodb://127.0.0.1:27017/ai-mianshi-dog'), // MongoDB 连接地址
 });
 
 export function validateEnv(config: Record<string, unknown>) {
