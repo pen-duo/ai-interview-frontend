@@ -1,9 +1,20 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import appConfig from './config/app.config';
+import { validateEnv } from './config/env-validation';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true, // 全局生效，其他模块就不用重复导入 ConfigModule
+      cache: true, // 缓存配置读取结果，避免每次都重新解析
+      envFilePath: `.env.${process.env.NODE_ENV || 'development'}`, // 按环境读取对应的 .env 文件
+      load: [appConfig], // 把零散环境变量整理成统一配置对象
+      validate: validateEnv, // 项目启动前先校验环境变量是否合法
+    }),
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

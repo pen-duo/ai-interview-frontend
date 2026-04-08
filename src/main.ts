@@ -1,16 +1,11 @@
-import { resolve } from 'node:path';
-import { config } from 'dotenv';
-import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-
-const nodeEnv = process.env.NODE_ENV || 'development';
-const envFilePath = resolve(process.cwd(), `.env.${nodeEnv}`);
-
-config({ path: envFilePath });
+import { ConfigService } from '@nestjs/config';
+import { NestFactory } from '@nestjs/core';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  const configService = app.get(ConfigService); // 从 Nest 配置中心读取配置
 
   app.useGlobalPipes(
     new ValidationPipe({
@@ -20,10 +15,12 @@ async function bootstrap() {
     }),
   );
 
-  // 开启跨域
-  app.enableCors();
+  // 从环境变量里读取允许跨域的来源
+  app.enableCors({
+    origin: configService.get<string>('app.corsOrigin', '*'),
+  });
 
-  const port = Number(process.env.PORT) || 3000;
+  const port = configService.get<number>('app.port', 3000); // 从配置里读取端口
   await app.listen(port);
 }
 

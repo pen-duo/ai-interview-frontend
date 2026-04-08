@@ -41,7 +41,11 @@ cp .env.example .env.development
 cp .env.example .env.production
 ```
 
-The app loads `.env.development` by default, and `pnpm run start:prod` loads `.env.production`.
+The project uses `@nestjs/config` for environment management.
+
+- `pnpm run start` / `pnpm run start:dev` load `.env.development`
+- `pnpm run start:prod` loads `.env.production`
+- Environment variables are validated at startup
 
 ## Compile and run the project
 
