@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+// ConfigModule: 负责在 Nest 启动时加载 .env 和配置文件
 import { ConfigModule } from '@nestjs/config';
+// ConfigService: 负责在代码里读取已经加载好的配置值
 import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
@@ -7,6 +9,7 @@ import { AppService } from './app.service';
 import appConfig from './config/app.config';
 import { validateEnv } from './config/env-validation';
 import { UserModule } from './user/user.module';
+import { InterviewModule } from './interview/interview.module';
 
 @Module({
   imports: [
@@ -26,6 +29,7 @@ import { UserModule } from './user/user.module';
       }),
     }),
     UserModule,
+    InterviewModule,
   ],
   controllers: [AppController],
   providers: [AppService],
