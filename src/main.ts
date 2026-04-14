@@ -2,6 +2,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { NestFactory } from '@nestjs/core';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,6 +20,17 @@ async function bootstrap() {
   app.enableCors({
     origin: configService.get<string>('app.corsOrigin', '*'),
   });
+
+  // Swagger: 生成接口文档配置
+  const swaggerConfig = new DocumentBuilder()
+    .setTitle('AI Mianshi Dog API')
+    .setDescription('AI Mianshi Dog 项目接口文档')
+    .setVersion('1.0.0')
+    .build();
+
+  // Swagger: 根据上面的配置生成 OpenAPI 文档，并挂到 /api-docs
+  const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
+  SwaggerModule.setup('api-docs', app, swaggerDocument);
 
   const port = configService.get<number>('app.port', 3000); // 从配置里读取端口
   await app.listen(port);

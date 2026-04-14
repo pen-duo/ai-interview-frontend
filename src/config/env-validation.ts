@@ -14,6 +14,7 @@ export const envValidationSchema: ObjectSchema = Joi.object({
 export function validateEnv(config: Record<string, unknown>) {
   const result = envValidationSchema.validate(config, {
     abortEarly: false, // 不要遇到第一个错误就停，尽量一次性报全
+    allowUnknown: true, // 允许未知属性
   }) as {
     error?: Error;
     value: Record<string, unknown>;
