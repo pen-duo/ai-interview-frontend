@@ -7,4 +7,8 @@ export default () => ({
   database: {
     uri: process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/ai-mianshi-dog', // MongoDB 连接地址
   },
+  jwt: {
+    secret: process.env.JWT_SECRET || 'dev-jwt-secret-key', // JWT 签名密钥
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d', // JWT 过期时间
+  },
 });

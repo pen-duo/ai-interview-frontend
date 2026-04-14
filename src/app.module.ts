@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { JwtModule } from '@nestjs/jwt';
 // ConfigModule: 负责在 Nest 启动时加载 .env 和配置文件
 import { ConfigModule } from '@nestjs/config';
 // ConfigService: 负责在代码里读取已经加载好的配置值
@@ -10,6 +11,10 @@ import appConfig from './config/app.config';
 import { validateEnv } from './config/env-validation';
 import { UserModule } from './user/user.module';
 import { InterviewModule } from './interview/interview.module';
+
+type JwtExpiresIn =
+  | number
+  | `${number}${'ms' | 's' | 'm' | 'h' | 'd' | 'w' | 'y'}`;
 
 @Module({
   imports: [
@@ -26,6 +31,19 @@ import { InterviewModule } from './interview/interview.module';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('database.uri'), // 从统一配置里读取 MongoDB 地址
+      }),
+    }),
+    // registerAsync: 动态读取 JWT 配置，并注册成全局模块
+    JwtModule.registerAsync({
+      global: true,
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.getOrThrow<string>('jwt.secret'),
+        signOptions: {
+          expiresIn: configService.getOrThrow<string>(
+            'jwt.expiresIn',
+          ) as JwtExpiresIn,
+        },
       }),
     }),
     UserModule,

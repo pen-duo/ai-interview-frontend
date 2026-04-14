@@ -9,6 +9,8 @@ export const envValidationSchema: ObjectSchema = Joi.object({
   MONGODB_URI: Joi.string()
     .uri({ scheme: ['mongodb', 'mongodb+srv'] })
     .default('mongodb://127.0.0.1:27017/ai-mianshi-dog'), // MongoDB 连接地址
+  JWT_SECRET: Joi.string().min(6).default('dev-jwt-secret-key'), // JWT 签名密钥
+  JWT_EXPIRES_IN: Joi.string().default('7d'), // JWT 过期时间
 });
 
 export function validateEnv(config: Record<string, unknown>) {
