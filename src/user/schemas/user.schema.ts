@@ -1,7 +1,12 @@
+import { compare, hash } from 'bcryptjs';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type UserDocument = HydratedDocument<User>;
+export interface UserMethods {
+  comparePassword(candidatePassword: string): Promise<boolean>;
+}
+
+export type UserDocument = HydratedDocument<User, UserMethods>;
 
 @Schema({
   timestamps: true,
@@ -106,3 +111,25 @@ export class User {
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
+const SALT_ROUNDS = 10;
+
+// 在用户保存前自动加密密码，避免明文直接入库
+UserSchema.pre('save', async function (this: UserDocument) {
+  if (!this.isModified('password') || !this.password) {
+    return;
+  }
+
+  this.password = await hash(this.password, SALT_ROUNDS);
+});
+
+// 挂到用户实例上的密码比对方法，登录时可直接调用
+UserSchema.methods.comparePassword = async function (
+  this: UserDocument,
+  candidatePassword: string,
+) {
+  if (!this.password) {
+    return false;
+  }
+
+  return compare(candidatePassword, this.password);
+};
