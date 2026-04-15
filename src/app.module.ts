@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
 // ConfigModule: 负责在 Nest 启动时加载 .env 和配置文件
 import { ConfigModule } from '@nestjs/config';
 // ConfigService: 负责在代码里读取已经加载好的配置值
@@ -7,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { JwtStrategy } from './auth/jwt.strategy';
 import appConfig from './config/app.config';
 import { validateEnv } from './config/env-validation';
 import { UserModule } from './user/user.module';
@@ -34,6 +36,9 @@ type JwtExpiresIn =
       }),
     }),
     // registerAsync: 动态读取 JWT 配置，并注册成全局模块
+    // JwtModule 负责生成 token
+    // JwtStrategy 负责校验 token
+    // JwtAuthGuard 负责把 JwtStrategy 应用到具体接口上
     JwtModule.registerAsync({
       global: true,
       inject: [ConfigService],
@@ -46,10 +51,12 @@ type JwtExpiresIn =
         },
       }),
     }),
+    // PassportModule 本身没有 global 选项；在根模块注册后可作为全局默认认证配置使用
+    PassportModule,
     UserModule,
     InterviewModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, JwtStrategy],
 })
 export class AppModule {}
