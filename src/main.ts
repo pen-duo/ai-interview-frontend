@@ -30,6 +30,7 @@ async function bootstrap() {
     .setTitle('AI Mianshi Dog API')
     .setDescription('AI Mianshi Dog 项目接口文档')
     .setVersion('1.0.0')
+    .addBearerAuth()
     .build();
 
   // Swagger: 根据上面的配置生成 OpenAPI 文档，并挂到 /api-docs

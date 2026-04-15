@@ -1,6 +1,7 @@
 import {
   ConflictException,
   Injectable,
+  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -54,7 +55,7 @@ export class UserService {
     }
 
     const accessToken = await this.jwtService.signAsync({
-      userId: String(user._id),
+      sub: String(user._id),
       email: user.email,
       username: user.username,
     });
@@ -68,5 +69,16 @@ export class UserService {
       accessToken,
       userInfo,
     };
+  }
+
+  async getUserInfo(userId: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .select('-password')
+      .lean();
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+    return user;
   }
 }
