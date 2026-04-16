@@ -1,4 +1,8 @@
-import { ExecutionContext, Injectable } from '@nestjs/common';
+import {
+  ExecutionContext,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from './public.decorator';
@@ -47,5 +51,39 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     // 2. 校验 token 是否合法、是否过期
     // 3. 校验通过后，把用户信息挂到 req.user
     return super.canActivate(context);
+  }
+
+  // handleRequest 会在 Passport 完成认证后被调用。
+  // 我们可以在这里把默认报错改成更容易看懂的中文提示。
+  handleRequest<TUser = unknown>(
+    err: unknown,
+    user: TUser,
+    info: { name?: string; message?: string } | undefined,
+  ): TUser {
+    if (err) {
+      if (err instanceof Error) {
+        throw err;
+      }
+
+      throw new UnauthorizedException('认证失败，请重新登录');
+    }
+
+    if (!user) {
+      if (info?.name === 'TokenExpiredError') {
+        throw new UnauthorizedException('登录已过期，请重新登录');
+      }
+
+      if (info?.name === 'JsonWebTokenError') {
+        throw new UnauthorizedException('无效的 token，请重新登录');
+      }
+
+      if (info?.message?.includes('No auth token')) {
+        throw new UnauthorizedException('未提供 token，请先登录');
+      }
+
+      throw new UnauthorizedException('认证失败，请检查登录状态');
+    }
+
+    return user;
   }
 }
