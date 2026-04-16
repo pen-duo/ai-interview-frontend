@@ -7,6 +7,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { RegisterUserDto } from './dto/register-user.dto';
 import { User, UserDocument } from './schemas/user.schema';
@@ -80,5 +82,55 @@ export class UserService {
       throw new NotFoundException('用户不存在');
     }
     return user;
+  }
+
+  async updateUserInfo(userId: string, updateUserDto: UpdateUserDto) {
+    if (updateUserDto.email) {
+      const existingUser = await this.userModel
+        .findOne({
+          email: updateUserDto.email,
+          _id: { $ne: userId }, // 排除当前用户
+        })
+        .lean();
+
+      if (existingUser) {
+        throw new ConflictException('邮箱已被使用');
+      }
+    }
+
+    const user = await this.userModel
+      .findByIdAndUpdate(userId, updateUserDto, {
+        new: true, // 返回更新后的文档；否则默认拿到的是更新前的数据
+        runValidators: true, // 更新时也执行 Schema 校验，避免写入不合法的数据
+      })
+      .select('-password')
+      .lean();
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    return user;
+  }
+
+  async changePassword(userId: string, changePasswordDto: ChangePasswordDto) {
+    const { oldPassword, newPassword } = changePasswordDto;
+    const user = await this.userModel.findById(userId);
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    const isOldPasswordValid = await user.comparePassword(oldPassword);
+    if (!isOldPasswordValid) {
+      throw new UnauthorizedException('旧密码错误');
+    }
+
+    user.password = newPassword;
+    await user.save(); // 这里会触发 schema 里的 pre('save')，自动加密新密码
+
+    return {
+      message: '密码修改成功',
+    };
   }
 }
