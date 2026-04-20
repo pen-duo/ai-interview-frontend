@@ -6,9 +6,10 @@ import {
   Get,
   Req,
   Put,
+  Request,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { LoginUserDto } from './dto/login-user.dto';
@@ -67,5 +68,19 @@ export class UserController {
   ) {
     const { userId } = req.user;
     return this.userService.changePassword(userId, changePasswordDto);
+  }
+
+  /**
+   * 获取用户消费记录（包括简历押题、专项面试、综合面试）
+   */
+  @Get('consumption-records')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({
+    summary: '获取用户消费记录',
+    description:
+      '获取用户所有的功能消费记录，包括简历押题、专项面试、综合面试等',
+  })
+  async getUserConsumptionRecords(@Request() req: any) {
+    return this.userService.getUserConsumptionRecords(req.user.userId);
   }
 }
