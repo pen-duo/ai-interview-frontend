@@ -16,6 +16,10 @@ import {
   ConsumptionRecord,
   ConsumptionRecordDocument,
 } from 'src/interview/schema/consumption-record.schema';
+import {
+  UserConsumption,
+  UserConsumptionDocument,
+} from './schemas/consumption-record.schema';
 
 @Injectable()
 export class UserService {
@@ -25,6 +29,8 @@ export class UserService {
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(ConsumptionRecord.name)
     private consumptionRecordModel: Model<ConsumptionRecordDocument>,
+    @InjectModel(UserConsumption.name)
+    private consumptionModel: Model<UserConsumptionDocument>,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -138,6 +144,27 @@ export class UserService {
     return {
       message: '密码修改成功',
     };
+  }
+
+  /**
+   * 创建消费记录
+   */
+  async createConsumptionRecord(
+    userId: string,
+    type: string,
+    quantity: number = 1,
+    source: string = 'free',
+    relatedId?: string,
+  ) {
+    const record = new this.consumptionModel({
+      userId,
+      type,
+      quantity,
+      source,
+      relatedId,
+    });
+
+    return await record.save();
   }
 
   /**

@@ -6,9 +6,9 @@ import {
   Get,
   Req,
   Put,
-  Request,
+  Query,
 } from '@nestjs/common';
-import type { Request } from 'express';
+import type { Request as ExpressRequest } from 'express';
 import { ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
 import { UserService } from './user.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -18,7 +18,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { Public } from 'src/auth/public.decorator';
 
-interface AuthenticatedRequest extends Request {
+interface AuthenticatedRequest extends ExpressRequest {
   user: {
     userId: string;
     email?: string;
@@ -74,13 +74,22 @@ export class UserController {
    * 获取用户消费记录（包括简历押题、专项面试、综合面试）
    */
   @Get('consumption-records')
-  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({
     summary: '获取用户消费记录',
     description:
       '获取用户所有的功能消费记录，包括简历押题、专项面试、综合面试等',
   })
-  async getUserConsumptionRecords(@Request() req: any) {
-    return this.userService.getUserConsumptionRecords(req.user.userId);
+  async getUserConsumptionRecords(
+    @Req() req: AuthenticatedRequest,
+    @Query('skip') skip: number = 0,
+    @Query('limit') limit: number = 20,
+  ) {
+    const { userId } = req.user;
+    const result = await this.userService.getUserConsumptionRecords(userId, {
+      skip,
+      limit,
+    });
+    return result;
   }
 }
